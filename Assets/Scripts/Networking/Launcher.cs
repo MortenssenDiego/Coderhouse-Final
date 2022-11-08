@@ -99,6 +99,7 @@ public class Launcher : MonoBehaviourPunCallbacks
         newPlayerLabel.text = newPlayer.NickName;
         newPlayerLabel.gameObject.SetActive(true);
         allPlayerNames.Add(newPlayerLabel);
+        ListAllPlayers();
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)

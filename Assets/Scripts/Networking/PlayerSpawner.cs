@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
-public class PlayerSpawner : MonoBehaviour
+public class PlayerSpawner : MonoBehaviourPunCallbacks
 {
     public static PlayerSpawner instance;
 
@@ -31,7 +31,10 @@ public class PlayerSpawner : MonoBehaviour
     {
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
-        player = PhotonNetwork.Instantiate(playerPrefab.name, spawnPoint.position, spawnPoint.rotation);
+        if(player == null)
+        {
+            player = PhotonNetwork.Instantiate(playerPrefab.name, spawnPoint.position, spawnPoint.rotation);
+        }
     }
 
     public void Die()
@@ -47,7 +50,7 @@ public class PlayerSpawner : MonoBehaviour
         GameObject effect = PhotonNetwork.Instantiate(deathEffect.name, player.transform.position, player.transform.rotation);
         PhotonNetwork.Destroy(player);
 
-        yield return new WaitForSeconds(5.0f);
+        yield return new WaitForSeconds(2.0f);
 
         PhotonNetwork.Destroy(effect); 
         SpawnPlayer();

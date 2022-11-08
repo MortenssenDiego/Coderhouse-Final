@@ -12,8 +12,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
     private float verticalRotStore;
     private Vector2 mouseInput = new();
     private Animator cameraAnimator;
-   
-    
 
     [Header("Movement")]
     public float moveSpeed = 5f;
@@ -24,7 +22,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public GameObject laserBeamPrefab;
     public Transform shootingPointRight;
     public Transform shootingPointLeft;
-
 
     private void Start()
     {
@@ -55,8 +52,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
     {
         GameObject laserBeam1 = PhotonNetwork.Instantiate(laserBeamPrefab.name, shootingPointRight.position, shootingPointRight.rotation);
         GameObject laserBeam2 = PhotonNetwork.Instantiate(laserBeamPrefab.name, shootingPointLeft.position, shootingPointRight.rotation);
-        Destroy(laserBeam1, 5.0f);
-        Destroy(laserBeam2, 5.0f);
     }
 
     private void SetMovement()
@@ -92,7 +87,10 @@ public class PlayerController : MonoBehaviourPunCallbacks
     {
         if(photonView.IsMine)
         {
-            PlayerSpawner.instance.Die();
+            if(collision.gameObject.CompareTag("Bullet") || collision.gameObject.CompareTag("Wall") || collision.gameObject.CompareTag("Player"))
+            {
+                PlayerSpawner.instance.Die();
+            }
         }
     }
 }
