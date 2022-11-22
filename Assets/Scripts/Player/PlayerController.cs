@@ -1,8 +1,11 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Photon.Pun;
 
 public class PlayerController : MonoBehaviourPunCallbacks
 {
+
+    PlayerControls controls;
 
     [Header("Camera View")]
     public Transform cameraTarget;
@@ -16,6 +19,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     [Header("Movement")]
     public float moveSpeed = 5f;
     public float turboSpeed = 15f;
+    private bool isTurbo = false;
     private Vector3 moveDir, movement = new();
 
     [Header("Shooting")]
@@ -23,11 +27,28 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public Transform shootingPointRight;
     public Transform shootingPointLeft;
 
+    [Header("Radar")]
+    public GameObject pulse;
+
+    private void Awake()
+    {
+        controls = new PlayerControls();
+
+        controls.Gameplay.Enable();
+
+        controls.Gameplay.Shoot1.performed += ctx => Shoot();
+        controls.Gameplay.Move.performed += ctx => moveDir = ctx.ReadValue<Vector2>();
+        controls.Gameplay.Move.canceled += ctx => moveDir = Vector3.zero;
+        controls.Gameplay.Rotation.performed += ctx => mouseInput = ctx.ReadValue<Vector2>();
+        controls.Gameplay.Rotation.canceled += ctx => mouseInput = Vector2.zero;
+    }
+
     private void Start()
     {
         if (!photonView.IsMine)
         {
             CM_Camera.SetActive(false);
+            pulse.SetActive(false);
         }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -38,29 +59,25 @@ public class PlayerController : MonoBehaviourPunCallbacks
     {
         if(photonView.IsMine)
         {
-            SetRotation();
+            isTurbo = controls.Gameplay.Turbo.IsInProgress();
+
+            SetRotation(mouseInput);
 
             SetMovement();
-
-            if (Input.GetMouseButtonDown(0))
-            {
-                Shoot();
-            }
         }
     }
     private void Shoot()
     {
+
         GameObject laserBeam1 = PhotonNetwork.Instantiate(laserBeamPrefab.name, shootingPointRight.position, shootingPointRight.rotation);
         GameObject laserBeam2 = PhotonNetwork.Instantiate(laserBeamPrefab.name, shootingPointLeft.position, shootingPointRight.rotation);
     }
 
     private void SetMovement()
     {
-        moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, 1.0f);
+        movement = transform.forward * 3f;
 
-        movement = transform.forward * moveDir.z * 3 + transform.forward * 1.5f;
-
-        if(Input.GetKey(KeyCode.LeftShift))
+        if(isTurbo)
         {
             transform.position += movement * turboSpeed * Time.deltaTime;
             cameraAnimator.SetBool("isTurbo", true);
@@ -71,14 +88,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
         }
     }
 
-    private void SetRotation()
-    {
-        mouseInput = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y")) * mouseSensivity;
+    private void SetRotation(Vector2 _mouseInput)
+    { 
+        if(transform.up.y < 0.0f)
+        {
+            _mouseInput.x *= -1f;
+        }
 
-        transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y + mouseInput.x, transform.rotation.eulerAngles.z);
+        transform.rotation = Quaternion.Euler(-verticalRotStore, transform.rotation.eulerAngles.y + _mouseInput.x * mouseSensivity, transform.rotation.eulerAngles.z);
 
-        verticalRotStore += mouseInput.y;
-        verticalRotStore = Mathf.Clamp(verticalRotStore, -90f, 90f);
+        verticalRotStore += _mouseInput.y;
+        //verticalRotStore = Mathf.Clamp(verticalRotStore, -90f, 90f);
 
         viewPoint.rotation = Quaternion.Euler(-verticalRotStore, viewPoint.rotation.eulerAngles.y, viewPoint.rotation.eulerAngles.z);
     }

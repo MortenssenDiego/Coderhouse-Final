@@ -95,11 +95,11 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        TMP_Text newPlayerLabel = Instantiate(playerNameLabel, playerNameLabel.transform.parent);
+        ListAllPlayers();
+        /*TMP_Text newPlayerLabel = Instantiate(playerNameLabel, playerNameLabel.transform.parent);
         newPlayerLabel.text = newPlayer.NickName;
         newPlayerLabel.gameObject.SetActive(true);
-        allPlayerNames.Add(newPlayerLabel);
-        ListAllPlayers();
+        allPlayerNames.Add(newPlayerLabel);*/
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
